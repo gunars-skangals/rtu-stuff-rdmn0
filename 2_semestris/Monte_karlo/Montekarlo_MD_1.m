@@ -1,9 +1,9 @@
 %% 1.spēlmaņu uzdevums
 clc
-q = 0.51 %  pirmā spēlētaja uzvaras varbūtība
-S_A = 100 % pirmā spēlētaja sākuma summa
-n = 10000 % spēļu skaits
-trials = 500 % meģinajumu skaits
+q = 0.495; %  pirmā spēlētaja uzvaras varbūtība
+S_A = 5; % pirmā spēlētaja sākuma summa
+n = 10; % spēļu skaits
+trials = 1000; % procesa realizācijas
 end_S = zeros(1, trials);
 for t = 1:trials
    results = zeros(1, trials);
@@ -19,13 +19,32 @@ for t = 1:trials
        results(i) = SK_A;
    end;
    
-   plot(results);   
+   % plot(results);   
    end_S(t) = SK_A;   
 end;
 
-histogram(end_S)
+histogram(end_S) % histogramma ar beigu summām pie dažādiem N
 
-% historgramma !! 
+% otrā daļa - pirmās negatīvās naudas summas spēļu numuri
+m = zeros(1, trials);
+for t = 1:trials
+   results = zeros(1, trials);
+   SK_A = S_A;
+   
+   i = 0;   
+   while SK_A > 0
+       if rand > q
+            SK_A = SK_A - 1;
+       else
+            SK_A = SK_A + 1;
+       end;
+       
+       i = i + 1;
+   end;
+   m(t) = i;
+end;
+
+histogram(m) % TODO: better bins
 %% 2. Eiropas rulete
 clc
 clearvars
@@ -49,4 +68,11 @@ for t = 1:trials
 
     plot(results);
 end;
+
+%% 
+% 2*sqrt(-abs(abs(x)-1)*abs(3-abs(x))/((abs(x)-1)*(3-abs(x))))(1+abs(abs(x)-3)/(abs(x)-3))sqrt(1-(x/7)^2)+(5+0.97(abs(x-.5)+abs(x+.5))-3(abs(x-.75)+abs(x+.75)))(1+abs(1-abs(x))/(1-abs(x)))
+% (2.71052+(1.5-.5abs(x))-1.35526sqrt(4-(abs(x)-1)^2))sqrt(abs(abs(x)-1)/(abs(x)-1))+0.9 
+
+% -3sqrt(1-(x/7)^2)sqrt(abs(abs(x)-4)/(abs(x)-4))
+% abs(x/2)-0.0913722(x^2)-3+sqrt(1-(abs(abs(x)-2)-1)^2)
 

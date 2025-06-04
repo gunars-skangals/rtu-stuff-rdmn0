@@ -1,0 +1,129 @@
+%% integrāļa vērtības aprēķins
+clc, clear all
+syms x
+fn = @(x) (x >= -7 & x <= -3).* (2 .* sqrt(x + 7)) + ...
+     (x > -3 & x <= -1).*(0.5 .* (x + 1) .^ 2 + 2) + ...
+     (x >= -1 & x < -0.75).*((x + 2) .* 8 - 6) + ...
+     (x >= -0.75 & x < -0.5).*((-1.75-x) .* 4 + 8) + ...
+     (x >= -0.5 & x < 0.5) .* 3 + ...
+     (x >= 0.5 & x < 0.75) .* ((-1.75+x) .* 4 + 8) + ...
+     (x >= 0.75 & x < 1) .* ((2 - x) .* 8 - 6) + ...
+     (x >= 1 & x < 3) .* (0.5 .* (x - 1) .^ 2 + 2) + ...
+     (x >= 3 & x <= 7) .* (2 .* sqrt(7-x));
+fplot(fn, [-8, 8])
+ylim([-1 5])
+title ('Dotā funkcija')
+grid on
+
+%%
+num_iterations = 500;
+num_simulations = 1000;
+estimates = zeros(num_simulations, 1);
+for j = 1:num_simulations
+    h = 0;
+    n = num_iterations;
+    for i = 1:n
+        x = rand * 14 - 7; % x ~ U[-7,7]
+        y = rand * 4; % y ~ U[0, 4]    
+        if fn(x) >= y
+            h = h + 1;
+        end;
+    end;    
+    est_area = 14 * 4 * h / n; % -7 līdz 7 = 14
+    estimates(j) = est_area;
+end;
+figure
+histogram(estimates);
+title('Novērtējumu histogramma')
+variance = var(estimates)
+laukums = mean(estimates)
+%%
+syms fn2(x)
+fn2(x) = piecewise( ... 
+    x >= -7 & x <= -3, 2 * sqrt(x + 7), ...
+    x > -3 & x <= -1, 0.5 * (x + 1) ^ 2 + 2, ...
+    x >= -1 & x < -0.75, (x + 2) * 8 - 6, ...
+    x >= -0.75 & x < -0.5, (-1.75-x) * 4 + 8, ...
+    x >= -0.5 & x < 0.5, 3, ...
+    x >= 0.5 & x < 0.75, (-1.75+x) * 4 + 8, ...
+    x >= 0.75 & x < 1, (2 - x) * 8 - 6, ...
+    x >= 1 & x < 3, 0.5 * (x - 1) ^ 2 + 2, ...
+    x >= 3 & x <= 7, 2 * sqrt(7-x), ...
+    0);
+exact_area = double(int(fn2, -7, 7));
+disp([ 'Precīza laukuma vērtība = ' num2str(exact_area) ]);
+%% pārveido problēmu ar control variate
+clc
+syms x
+fn_Y_2 = 3.5 - x .^ 2 ./ 14;
+fn_Y = @(x) 3.5 - x .^ 2 ./ 14;
+exact_area_Y = double(int(fn_Y_2, -7, 7))
+figure
+fplot(fn, [-7, 7])
+hold on
+fplot(fn_Y, [-7, 7])
+ylim([-1 6])
+grid on
+hold off
+title('Dotā funkcija un Y')
+figure
+fplot(fn - fn_Y_2, [-7, 7])
+title('Starpība starp doto funkciju un Y')
+
+%% korelācija un kovariance
+values = zeros(100, 2);
+
+for i = 1:100
+    x = i / 14 - 7;
+    values(i, 1) = fn(x);
+    values(i, 2) = fn_Y(x);
+end;
+
+corelation = corr(values)
+covariances = cov(values)
+
+%%
+esti
+for j = 1:num_simulations
+    h = 0;
+    n = num_iterations;
+    for i = 1:n
+        x = rand * 14 - 7; % x ~ U[-7,7]
+        y = rand * 3 - 1.5; % y ~ U[-1.5, 1.5]    
+        v = fn(x) - fn_Y(x);
+        if v >= y
+            h = h + 1;
+        end;
+    end;
+    est_area_cv = 14 * 3 * h / n - 14 * 1.5 + exact_area_Y;
+    estimates_cv(j) = est_area_cv;
+end;
+figure
+histogram(estimates_cv);
+title('Histogramma ar kontroles mainīgo')
+variance = var(estimates_cv)
+laukums = mean(estimates_cv)
+
+
+num_iterations = 500;
+num_simulations = 1000;
+estimates_cv = zeros(num_simulations, 1);
+for j = 1:num_simulations
+    h = 0;
+    n = num_iterations;
+    for i = 1:n
+        x = rand * 14 - 7; % x ~ U[-7,7]
+        y = rand * 3 - 1.5; % y ~ U[-1.5, 1.5]    
+        v = fn(x) - fn_Y(x);
+        if v >= y
+            h = h + 1;
+        end;
+    end;
+    est_area_cv = 14 * 3 * h / n - 14 * 1.5 + exact_area_Y;
+    estimates_cv(j) = est_area_cv;
+end;
+figure
+histogram(estimates_cv);
+title('Histogramma ar kontroles mainīgo')
+variance = var(estimates_cv)
+laukums = mean(estimates_cv)

@@ -1,0 +1,51 @@
+%% 1.uzdevums
+clc, clear all
+q = 0.495; %  pirmā spēlētaja uzvaras varbūtība
+
+% stāvokļi - uzvara U, zaudējums Z
+% varbūtība pārejai no U uz U vai Z uz U = q
+% varbūtība pārejai no Z uz Z vai U uz Z = 1 - q
+A = [ q q; (1 - q) (1 - q) ];
+
+n0 = [ q (1 - q) ]'; % sākuma stāvoklis
+n_t = n0;
+skaits = 100;
+for i=1:100
+    n_t = A * n_t;
+end
+n_t % Sadalījums nemainās, pie jebkāda iterāciju skaita rezultāts ir [ q (1-q) ]'
+
+S_0 = 123;
+
+S = S_0 - skaits * n_t(2) + skaits * n_t(1)
+% sagaidāmais atlikušas naudas daudzums (S_a) pēc 10, 100 un 1000 spēlēm 
+[ S_0  0 ] * n_t % tas pats, kas S_0 * q
+
+%% Markov chain Monte Carlo
+clc, clear all
+data = readtable('/home/g/Documents/15 Years Stock Data of NVDA AAPL MSFT GOOGL and AMZN.csv');
+deltas = diff(log(data.Close_AAPL));
+hold on
+histogram(deltas,'Normalization','pdf')
+[f1,x1] = ksdensity(deltas);
+plot(x1,f1, 'LineWidth', 3)
+hold off
+%%
+n = 25000; %simulāciju skaits
+x=zeros(n,1);
+x(1) = 0; %sākuma punkts
+for i = 1:n-1
+    x_c = normrnd(x(i), 0.01);
+    alpha = interp1(x1,f1,x_c) / interp1(x1,f1,x(i));
+    if rand < min(1,alpha)
+        x(i+1) = x_c; % ņem jauno vērtību
+    else
+        x(i+1) = x(i); % noraida jauno vērtību
+    end
+end
+figure;
+hold on
+plot(x1,f1, 'LineWidth', 2)
+histogram(x,'Normalization','pdf');
+xlim([-0.2 0.2]) % gara negtiva aste
+hold off
